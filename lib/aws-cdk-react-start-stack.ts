@@ -1,9 +1,9 @@
 import * as cdk from "aws-cdk-lib";
-import * as s3 from "aws-cdk-lib/aws-s3";
-import { CfnOutput } from "aws-cdk-lib";
-import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
+import { BlockPublicAccess, Bucket } from 'aws-cdk-lib/aws-s3'
+import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib'
+import { Distribution, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront'
 import { S3BucketOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
-import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
+import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment'
 import { Construct } from "constructs";
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
@@ -13,23 +13,33 @@ export class AwsCdkReactStartStack extends cdk.Stack {
 
     // The code that defines your stack goes here
     // Create an S3 bucket
-    const bucket = new s3.Bucket(this, "MyWebBucket", {
+    const bucket = new Bucket(this, "MyWebBucket", {
       bucketName: "aws-cdk-react-start-web",
       websiteIndexDocument: "index.html",
       publicReadAccess: true,
-      blockPublicAccess: cdk.aws_s3.BlockPublicAccess.BLOCK_ACLS,
+      blockPublicAccess: BlockPublicAccess.BLOCK_ACLS,
+      removalPolicy: RemovalPolicy.DESTROY,
     });
 
     // Create a CloudFront Distribution
-    const distribution = new cloudfront.Distribution(this, "MyDistribution", {
+    const distribution = new Distribution(this, 'MyDistribution', {
       defaultBehavior: {
         origin: S3BucketOrigin.withBucketDefaults(bucket),
+          viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       },
-    });
+      defaultRootObject: 'index.html',
+      errorResponses: [
+          {
+              httpStatus: 404,
+              responseHttpStatus: 200,
+              responsePagePath: '/index.html',
+          },
+      ],
+  })
 
     // Deploy site content to S3
-    new s3deploy.BucketDeployment(this, "DeploySite", {
-      sources: [s3deploy.Source.asset("./dist")],
+    new BucketDeployment(this, "DeploySite", {
+      sources: [Source.asset("./dist")],
       destinationBucket: bucket,
       distribution,
       distributionPaths: ["/*"],

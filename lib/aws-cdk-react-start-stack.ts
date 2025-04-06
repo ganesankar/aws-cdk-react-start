@@ -1,5 +1,6 @@
 import * as cdk from "aws-cdk-lib";
 import * as s3 from "aws-cdk-lib/aws-s3";
+import { CfnOutput } from "aws-cdk-lib";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import { S3BucketOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
 import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
@@ -26,6 +27,24 @@ export class AwsCdkReactStartStack extends cdk.Stack {
       },
     });
 
-  
+    // Deploy site content to S3
+    new s3deploy.BucketDeployment(this, "DeploySite", {
+      sources: [s3deploy.Source.asset("./dist")],
+      destinationBucket: bucket,
+      distribution,
+      distributionPaths: ["/*"],
+    });
+
+    new CfnOutput(this, "CloudFrontURL", {
+      value: distribution.domainName,
+      description: "The distribution URL",
+      exportName: "CloudfrontURL",
+    });
+
+    new CfnOutput(this, "BucketName", {
+      value: bucket.bucketName,
+      description: "The name of the S3 bucket",
+      exportName: "BucketName",
+    });
   }
 }

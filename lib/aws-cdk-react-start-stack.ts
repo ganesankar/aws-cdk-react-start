@@ -19,6 +19,13 @@ export class AwsCdkReactStartStack extends cdk.Stack {
       blockPublicAccess: cdk.aws_s3.BlockPublicAccess.BLOCK_ACLS,
     });
 
+    // Create a CloudFront Distribution
+    const distribution = new cloudfront.Distribution(this, "MyDistribution", {
+      defaultBehavior: {
+        origin: S3BucketOrigin.withBucketDefaults(bucket),
+      },
+    });
+
   
   }
 }

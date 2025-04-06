@@ -12,7 +12,9 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "deploy": "npm run build:ui && npm run cdk deploy",
+    "deploy:dev": "npm run build:ui && run cdk deploy --context stage=dev"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
